@@ -1,0 +1,109 @@
+CREATE DATABASE agrosrl;
+
+
+
+CREATE TABLE `agrosrl`.`Empresa`(
+
+	`id_empresa` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+	`razon_social` varchar(255),
+
+	`cuit` varchar(10),
+
+	`direccion` varchar(255),
+
+        PRIMARY KEY(`id_empresa`)
+
+);
+
+
+
+CREATE TABLE `agrosrl`.`Estado_Campo`(
+
+	`id_estado_campo` INT NOT NULL AUTO_INCREMENT,
+
+	`descripcion` varchar(255),
+
+        PRIMARY KEY(`id_estado_campo`)
+
+);
+
+
+
+CREATE TABLE `agrosrl`.`Campo`(
+
+	`id_campo` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+	`nombre_campo` varchar(255),
+
+	`superficie_campo` float(10),
+
+	`id_estado_campo_fk` int,
+
+        PRIMARY KEY(`id_campo`),
+
+	FOREIGN KEY(`id_estado_campo_fk`) REFERENCES `Estado_Campo`(`id_estado_campo`)
+
+);
+
+
+
+CREATE TABLE `agrosrl`.`Empresa_Campo`(
+
+	`id_empresa_fk` INT UNSIGNED NOT NULL,
+
+	`id_campo_fk` INT UNSIGNED NOT NULL,
+
+        PRIMARY KEY(`id_empresa_fk`, `id_campo_fk`),
+
+	FOREIGN KEY(`id_empresa_fk`) REFERENCES `Empresa`(`id_empresa`),
+    
+    FOREIGN KEY(`id_campo_fk`) REFERENCES `Campo`(`id_campo`)
+
+);
+
+
+
+CREATE TABLE `agrosrl`.`Tipo_Suelo`(
+
+	`id_tipo_suelo` INT NOT NULL AUTO_INCREMENT,
+
+	`numero` int(10),
+    `descripcion` varchar(255),
+
+        PRIMARY KEY(`id_tipo_suelo`)
+
+);
+
+
+
+CREATE TABLE `agrosrl`.`Lote`(
+
+	`id_lote` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+	`numero_lote` int(10),
+
+	`superficie_lote` float(10),
+
+	`id_tipo_suelo_fk` int,
+
+        PRIMARY KEY(`id_lote`),
+
+	FOREIGN KEY(`id_tipo_suelo_fk`) REFERENCES `Tipo_Suelo`(`id_tipo_suelo`)
+
+);
+
+
+
+CREATE TABLE `agrosrl`.`Campo_Lote`(
+
+	`id_campo_fk` INT UNSIGNED NOT NULL,
+
+	`id_lote_fk` INT UNSIGNED NOT NULL,
+
+        PRIMARY KEY(`id_campo_fk`, `id_lote_fk`),
+
+	FOREIGN KEY(`id_campo_fk`) REFERENCES `Campo`(`id_campo`),
+
+        FOREIGN KEY(`id_lote_fk`) REFERENCES `Lote`(`id_lote`)
+);
