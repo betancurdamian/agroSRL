@@ -18,12 +18,12 @@ import javax.persistence.Table;
  * @author Ariel
  */
 @Entity
-@Table(name = "ESTADO_CAMPO")
+@Table(name = "estado_campo")
 public class EstadoCampo implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "descripcion")
@@ -69,7 +69,6 @@ public class EstadoCampo implements Serializable {
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
     }
-    
     
     
 }

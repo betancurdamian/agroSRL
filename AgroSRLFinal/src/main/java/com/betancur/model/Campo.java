@@ -11,9 +11,11 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -23,34 +25,36 @@ import javax.persistence.Table;
  * @author Ariel
  */
 @Entity
-@Table(name = "CAMPO")
+@Table(name = "campo")
 public class Campo implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(name = "nombreCampo")
     private String nombreCampo;
     
     @Column(name = "superficieCampo", length = 10)
     private float superficieCampo;
-    
-    //Lotes que posee el campo
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "unCampo")
-    private List<Lote> listaLotes;
+           
+    @ManyToOne
+    @JoinColumn(name="id_estadoCampo", nullable = false)
+    private EstadoCampo estadoCampo;
     
     @ManyToOne
-    private EstadoCampo unEstadoCampo;
+    @JoinColumn(name="id_empresa", nullable = false)
+    private Empresa empresa; 
     
-    @ManyToOne
-    private Empresa unaEmpresa;
+    @OneToMany(mappedBy = "campo", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
+            fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Lote> listaDeLotes;
 
     public Campo() {
-        this.listaLotes = new ArrayList(); 
+        //Se debe de inicializar la lista, para evitar nullPinterException
+        listaDeLotes = new ArrayList<>();
     }
-    
     
     
     public Long getId() {
@@ -102,29 +106,29 @@ public class Campo implements Serializable {
         this.superficieCampo = superficieCampo;
     }
 
-    public EstadoCampo getUnEstadoCampo() {
-        return unEstadoCampo;
+    public EstadoCampo getEstadoCampo() {
+        return estadoCampo;
     }
 
-    public void setUnEstadoCampo(EstadoCampo unEstadoCampo) {
-        this.unEstadoCampo = unEstadoCampo;
+    public void setEstadoCampo(EstadoCampo estadoCampo) {
+        this.estadoCampo = estadoCampo;
     }
 
-    public Empresa getUnaEmpresa() {
-        return unaEmpresa;
+    public Empresa getEmpresa() {
+        return empresa;
     }
 
-    public void setUnaEmpresa(Empresa unaEmpresa) {
-        this.unaEmpresa = unaEmpresa;
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
     }
 
-    public List<Lote> getListaLotes() {
-        return listaLotes;
+    public List<Lote> getListaDeLotes() {
+        return listaDeLotes;
     }
 
-    public void setListaLotes(List<Lote> attachedListaLotes) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void setListaDeLotes(List<Lote> listaDeLotes) {
+        this.listaDeLotes = listaDeLotes;
     }
-    
+
     
 }

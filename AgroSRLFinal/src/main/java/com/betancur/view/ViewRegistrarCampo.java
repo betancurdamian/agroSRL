@@ -13,8 +13,11 @@ import com.betancur.model.Lote;
 import com.betancur.model.TipoSuelo;
 import com.sun.glass.events.KeyEvent;
 import java.awt.Color;
+import java.util.AbstractList;
+import java.util.ArrayList;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.event.AncestorListener;
 import javax.swing.table.DefaultTableModel;
@@ -24,9 +27,15 @@ import javax.swing.table.DefaultTableModel;
  * @author Ariel
  */
 public class ViewRegistrarCampo extends javax.swing.JPanel {
+    int filaSeleccionada = 0;
+    int seleccion = 0;
     ControllerRegistrarCampo controlador;
+    
+    //Paneles
     PanelContenedor contenedorSingleton;
     ModuloPrincipal moduloPrincipal;
+    PanelRegistroConfirmacion registroConfirmado;
+    
     private ValidadorDeCampos validador;
     
     private Campo nuevoCampo;
@@ -68,6 +77,7 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
         this.modeloTablaLotes.addColumn("Superficie");
         this.modeloTablaLotes.addColumn("Tipo de Suelo");
         
+        this.jTable_listaDeLotes.getTableHeader().setReorderingAllowed(false) ;
         this.jTable_listaDeLotes.setModel(modeloTablaLotes);
         
         for(TipoSuelo recorridoTipoSuelo : controlador.getTipoSuelo()) {
@@ -76,7 +86,7 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
         
         this.jcb_tipoSueloLote.setModel(modelComboBoxTipoSuelo);
         
-        
+        this.filaSeleccionada = -1;
     }
 
     /**
@@ -103,8 +113,8 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
         jSeparator5 = new javax.swing.JSeparator();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable_listaDeLotes = new javax.swing.JTable();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        jbtn_quitar = new javax.swing.JButton();
+        jbtn_editar = new javax.swing.JButton();
         jlbl_lotes = new javax.swing.JLabel();
         jlbl_mensajeLote1 = new javax.swing.JLabel();
         jlbl_numeroDeLote = new javax.swing.JLabel();
@@ -116,6 +126,11 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
         jlbl_mensajeLote2 = new javax.swing.JLabel();
         jbtn_agregarLote = new javax.swing.JButton();
 
+        addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                formMouseClicked(evt);
+            }
+        });
         setLayout(null);
 
         jlbl_nombreCampo.setText("Nombre:");
@@ -199,6 +214,11 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
             }
         });
         jTable_listaDeLotes.setEnabled(false);
+        jTable_listaDeLotes.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable_listaDeLotesMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable_listaDeLotes);
         if (jTable_listaDeLotes.getColumnModel().getColumnCount() > 0) {
             jTable_listaDeLotes.getColumnModel().getColumn(0).setResizable(false);
@@ -209,15 +229,20 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
         add(jScrollPane1);
         jScrollPane1.setBounds(362, 130, 390, 290);
 
-        jButton1.setText("Quitar");
-        jButton1.setEnabled(false);
-        add(jButton1);
-        jButton1.setBounds(670, 440, 80, 23);
+        jbtn_quitar.setText("Quitar");
+        jbtn_quitar.setEnabled(false);
+        jbtn_quitar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jbtn_quitarActionPerformed(evt);
+            }
+        });
+        add(jbtn_quitar);
+        jbtn_quitar.setBounds(670, 440, 80, 23);
 
-        jButton2.setText("Editar");
-        jButton2.setEnabled(false);
-        add(jButton2);
-        jButton2.setBounds(573, 440, 80, 23);
+        jbtn_editar.setText("Editar");
+        jbtn_editar.setEnabled(false);
+        add(jbtn_editar);
+        jbtn_editar.setBounds(573, 440, 80, 23);
 
         jlbl_lotes.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
         jlbl_lotes.setText("Lotes");
@@ -275,32 +300,35 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
         jbtn_agregarLote.setBounds(100, 390, 130, 23);
     }// </editor-fold>//GEN-END:initComponents
 
+    //Paso 1: verificar Nombre del campo
+    //1a- crea nuevoCampo
+    //1b- nuevoCampo.nombre tiene el valor ingresado por el usuario
+    //1c- nuevoCampo.empresa tiene el valor de la empresa en la cual se esta trabajando
     private void jtf_nombreCampoKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jtf_nombreCampoKeyTyped
-        boolean campoIngresado = false;
+        boolean nombreDeCampoValido = false;
         char teclaPresionada = evt.getKeyChar();
         if (teclaPresionada == KeyEvent.VK_ENTER) {
             
+            //JTF no debe estar vacio
              if (jtf_nombreCampo.getText().isEmpty())
             {
                  this.jlbl_mensajeNombreCampo.setText("Ingrese un valor valido"); 
             }
             else
             {
-                campoIngresado = controlador.verificarNombreDeCampo(jtf_nombreCampo.getText());
-                this.jtf_superficieCampo.requestFocus();
-                if(campoIngresado == true){
+                nombreDeCampoValido = controlador.verificarNombreDeCampo(jtf_nombreCampo.getText());                
+                if(nombreDeCampoValido == true){
+                    this.jtf_superficieCampo.requestFocus();
                     this.jtf_nombreCampo.setEnabled(false);
                     this.jtf_superficieCampo.setEnabled(true);  
                     this.jlbl_mensajeNombreCampo.setBackground(Color.GREEN);
                     this.jlbl_mensajeNombreCampo.setText("Nombre correcto");
-                    this.nuevoCampo = new Campo();
+                    this.nuevoCampo = new Campo();                    
                     this.nuevoCampo.setNombreCampo(jtf_nombreCampo.getText());
-                    repaint();
                 }else{
                     this.jtf_nombreCampo.setText("");
                     this.jlbl_mensajeNombreCampo.setBackground(Color.RED);
                     this.jlbl_mensajeNombreCampo.setText("Este nombre ya esta en uso.");
-                    repaint();
                 }
             }
         }
@@ -311,6 +339,8 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
         contenedorSingleton.cargarModulo(moduloPrincipal);
     }//GEN-LAST:event_jbtn_cancelarCampoActionPerformed
 
+    //Paso 2: ingresar superficie al campo
+    //2a- nuevoCampo.superficie toma el valor ingresado por el usuario
     private void jtf_superficieCampoKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jtf_superficieCampoKeyTyped
         float superficieAux  = 0;
         char teclaPresionada = evt.getKeyChar();
@@ -333,7 +363,11 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
             }
         }
     }//GEN-LAST:event_jtf_superficieCampoKeyTyped
-
+    
+    //Paso 4: Ingresar superficie de lote
+    //4a- nuevoLote.superficieLote ingresada por el usuario debe de cumplir las siguientes caracteristicas:
+    //4a-caracteristica- Ser mayor a 0(Cero)
+    //4a-caracteristica- Ser mayor o igual a la superficie disponible del campo
     private void jtf_superficieLoteKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jtf_superficieLoteKeyTyped
         char teclaPresionada = evt.getKeyChar();
         float superficieAux = 0;
@@ -364,7 +398,12 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
         }        
     }//GEN-LAST:event_jtf_superficieLoteKeyTyped
 
+    //Paso 3: Ingresar numero de lote
+    //3a- crea nuevoLote
+    //3b- nuevoLote.unCampo es igual a nuevoCampo creado en el paso 1
+    //3c- nuevoLote.numeroLote es igual al valor ingresado por el usuario
     private void jtf_numeroDeLoteKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jtf_numeroDeLoteKeyTyped
+        
         char teclaPresionada = evt.getKeyChar();
         int numeroDeLote  =0;
         if (teclaPresionada == KeyEvent.VK_ENTER) {
@@ -376,9 +415,11 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
             {
                 numeroDeLote  = Integer.parseInt(jtf_numeroDeLote.getText());
                 if(numeroDeLote>0 ){
+                    
                     if (!controlador.verificarNumeroLote(this.nuevoCampo, numeroDeLote)) {
+                        
                         this.nuevoLote = new Lote();
-                        this.nuevoLote.setUnCampo(this.nuevoCampo);
+                        this.nuevoLote.setCampo(this.nuevoCampo);
                         this.nuevoLote.setNumeroLote(numeroDeLote);                    
                         this.jtf_numeroDeLote.setEnabled(false);
 
@@ -387,36 +428,49 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
                         this.jtf_superficieLote.requestFocus();
 
                         this.jlbl_mensajeLote2.setText("Numero de lote OK ");
+
                     }else{
 
                         this.jlbl_mensajeLote2.setText("El numero: "+jtf_numeroDeLote.getText()+" ya esta en uso");
                     }    
+                    
                 }else{
                     this.jlbl_mensajeLote2.setText("El numero de lote debe ser mayor a "+jtf_numeroDeLote.getText());
                 }
             }
         }
+
     }//GEN-LAST:event_jtf_numeroDeLoteKeyTyped
 
+    
+    //Paso 5: Agregar lote al campo
     private void jbtn_agregarLoteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtn_agregarLoteActionPerformed
-        //this.nuevoLote.setUnTipoSuelo(unTipoSuelo);
+        
         this.jbtn_agregarLote.setEnabled(false);
         this.jcb_tipoSueloLote.setEnabled(false);
         
-        nuevoLote.setUnTipoSuelo((TipoSuelo)jcb_tipoSueloLote.getSelectedItem());
+        TipoSuelo tipoSueloAux = null;
         
-        nuevoCampo.getListaLotes().add(nuevoLote);
+        tipoSueloAux =((TipoSuelo)jcb_tipoSueloLote.getSelectedItem());
+        
+        controlador.agregarTipoSueloAlLote(tipoSueloAux, nuevoLote);
         
         
+        //agrega el nuevo lote al campo
+        nuevoCampo.getListaDeLotes().add(nuevoLote);
+        
+        
+        //prepara el objeto a ser insertado en la tabla con los valores del lote
         Object []object = new Object[3];
         object[0] = nuevoLote.getNumeroLote();
         object[1] = nuevoLote.getSuperficieLote(); 
-        object[2] = nuevoLote.getUnTipoSuelo().getNumero(); 
+        object[2] = nuevoLote.getTipoSuelo().getNumero(); 
          
 
+        //Agrega datos del lote a la tabla
         modeloTablaLotes.addRow(object);
         
-        if (nuevoCampo.getListaLotes().isEmpty()) {
+        if (nuevoCampo.getListaDeLotes().isEmpty()) {
             this.jbtn_RegistrarCampo.setEnabled(false);
         }else{
             this.jbtn_RegistrarCampo.setEnabled(true);
@@ -426,6 +480,7 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
                 this.jbtn_agregarLote.setEnabled(false);
                 this.jtf_numeroDeLote.setEnabled(true);
                 this.jtf_numeroDeLote.requestFocus();
+                this.jcb_tipoSueloLote.setSelectedIndex(0);
             }else{
                 this.jbtn_RegistrarCampo.setEnabled(true);
             }
@@ -433,24 +488,197 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
         }
         
         
+       
+        
+        
+        
     }//GEN-LAST:event_jbtn_agregarLoteActionPerformed
 
     private void jbtn_RegistrarCampoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtn_RegistrarCampoActionPerformed
+        //Seteamos el JOptionPane con los siguientes parametros:
+        //1-Mensaje
+        //2-Titulo del JOptionPane
+        //3-Tipo de JOptionPane YES_NO_OPTION 
+        int confirmacion = JOptionPane.showConfirmDialog(null, "¿Confirma el registro del campo?", "Registrar Campo", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        
+        
         if (this.nuevoCampo!=null) {
-            if (this.nuevoCampo.getListaLotes().isEmpty()) {
+            if (this.nuevoCampo.getListaDeLotes().isEmpty()) {
+                //Campo sin Lote
                 System.out.println("lotes vacios");
             }else{
-                controlador.finalizarRegistroNuevoCampo(this.nuevoCampo);
+                //Campo con Lote Completo
+                
+                //Acepta el Registro del Campo
+                if(confirmacion==0){
+                    //crea nuevo panel
+                    registroConfirmado = new PanelRegistroConfirmacion();
+                    registroConfirmado.setSize(800, 600);
+                    registroConfirmado.cargar(this.nuevoCampo);
+                    contenedorSingleton.cargarModulo(registroConfirmado);        
+                            
+                    controlador.finalizarRegistroNuevoCampo(this.nuevoCampo);
+                    
+                }
+                
+                //Cancela el Registro del Campo
+                if(confirmacion==0){
+                    
+                }
+                
+                //Cancela el dialogo, acccion igual a boton cancela
+                if(confirmacion==-1){
+                    
+                }
             }
         }else{
+            //Campo No completado
             System.out.println("campo vacio");
         }
+        
+        
     }//GEN-LAST:event_jbtn_RegistrarCampoActionPerformed
+
+    
+    /**
+     * jTable_listaDeLotesMouseClicked
+     * Controla los clicks realizados en la tabla de lotes
+     * @param evt 
+     */
+    private void jTable_listaDeLotesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable_listaDeLotesMouseClicked
+        
+        this.filaSeleccionada = 0;
+        this.seleccion = jTable_listaDeLotes.rowAtPoint(evt.getPoint());
+        String aux = String.valueOf(jTable_listaDeLotes.getValueAt(seleccion, 0));
+       
+        this.filaSeleccionada = Integer.parseInt(aux); 
+        
+        //filaSeleccionada es el numero de lote
+        
+        if(filaSeleccionada>=0){
+           
+            this.jbtn_editar.setEnabled(true);
+            this.jbtn_editar.setBackground(Color.green);
+            this.jbtn_quitar.setEnabled(true);
+            this.jbtn_quitar.setBackground(Color.red);
+
+            //inhabilita el numero de lote
+            this.jtf_numeroDeLote.setEnabled(false);
+
+            //setear Lotes
+
+            this.jtf_numeroDeLote.setText(String.valueOf(this.nuevoCampo.getListaDeLotes().get(seleccion).getNumeroLote()));
+            this.jtf_superficieLote.setText(String.valueOf(this.nuevoCampo.getListaDeLotes().get(seleccion).getSuperficieLote()));
+
+            this.jcb_tipoSueloLote.setSelectedItem(this.nuevoCampo.getListaDeLotes().get(seleccion).getTipoSuelo());
+            //this.jcb_tipoSueloLote.setSelectedIndex((this.nuevoCampo.getListaDeLotes().get(filaSeleccionada-1).getTipoSuelo().getNumero())-1);
+
+
+            this.jbtn_cancelarCampo.setEnabled(false);
+            this.jbtn_RegistrarCampo.setEnabled(false);
+            
+            
+            
+        }
+        
+    }//GEN-LAST:event_jTable_listaDeLotesMouseClicked
+
+    
+    /**
+     * formMouseClicked
+     * Controla el click realizado sobre el formulario principal
+     * Click en formulario, sin registro filaSeleccionada = 0
+     * Click en formulario con registro filaSeleccionada = a registro seleccionado
+     * Click fuera de formulario filaSeleccionada = 0
+     * @param evt 
+     */
+    private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
+        this.filaSeleccionada = 0;
+        if(filaSeleccionada==0){
+            this.jbtn_editar.setEnabled(false);
+            this.jbtn_editar.setBackground(null);
+            this.jbtn_quitar.setEnabled(false);
+            this.jbtn_quitar.setBackground(null);
+            
+            
+            this.jtf_numeroDeLote.setEnabled(false);
+            this.jtf_superficieLote.setEnabled(false);
+            this.jcb_tipoSueloLote.setEnabled(false);
+             
+            //habilita el numero de lote            
+            if (nuevoCampo!=null&&!nuevoCampo.getListaDeLotes().isEmpty()) {
+                
+                if (controlador.verificarSuperficieLote(this.nuevoCampo)>0) {
+                    this.jtf_numeroDeLote.setText("");
+                    this.jtf_superficieLote.setText("");
+                    this.jbtn_agregarLote.setEnabled(false);
+                    this.jtf_numeroDeLote.setEnabled(true);
+                    this.jtf_numeroDeLote.requestFocus();
+                    this.jcb_tipoSueloLote.setSelectedIndex(0);
+                }else{                    
+                }
+                this.jbtn_RegistrarCampo.setEnabled(true);
+                this.jbtn_cancelarCampo.setEnabled(true);
+            }else{
+                this.jtf_numeroDeLote.setText("");
+                this.jtf_superficieLote.setText("");
+                this.jbtn_agregarLote.setEnabled(false);
+                this.jtf_numeroDeLote.setEnabled(true);
+                this.jtf_numeroDeLote.requestFocus();
+                this.jcb_tipoSueloLote.setSelectedIndex(0);
+                
+            }
+        }
+    }//GEN-LAST:event_formMouseClicked
+
+    private void jbtn_quitarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtn_quitarActionPerformed
+        if (seleccion>=0) {
+            //System.out.println("numeroLote: "+this.nuevoCampo.getListaDeLotes().get(filaSeleccionada).getNumeroLote());
+            if (nuevoCampo!=null&&!nuevoCampo.getListaDeLotes().isEmpty()) {                
+                if (controlador.verificarSuperficieLote(this.nuevoCampo)>0) {
+                    /*
+                    this.jtf_numeroDeLote.setText("");
+                    this.jtf_superficieLote.setText("");
+                    this.jbtn_agregarLote.setEnabled(false);
+                    this.jtf_numeroDeLote.setEnabled(true);
+                    this.jtf_numeroDeLote.requestFocus();
+                    this.jcb_tipoSueloLote.setSelectedIndex(0);
+                    */
+                    //nuevoCampo.getListaDeLotes().remove(seleccion);
+                    modeloTablaLotes.removeRow(seleccion);
+                    repaint();
+                    
+                }else{   
+                    
+                }
+                
+                nuevoCampo.getListaDeLotes().remove(seleccion);
+                modeloTablaLotes.removeRow(seleccion);
+                repaint();
+                
+                this.jbtn_editar.setEnabled(false);
+                this.jbtn_editar.setBackground(null);
+                this.jbtn_quitar.setEnabled(false);
+                this.jbtn_quitar.setBackground(null);
+                
+                this.jbtn_RegistrarCampo.setEnabled(true);
+                this.jbtn_cancelarCampo.setEnabled(true);
+            }else{
+                
+                /*
+                this.jtf_numeroDeLote.setText("");
+                this.jtf_superficieLote.setText("");
+                this.jbtn_agregarLote.setEnabled(false);
+                this.jtf_numeroDeLote.setEnabled(true);
+                this.jtf_numeroDeLote.requestFocus();
+                this.jcb_tipoSueloLote.setSelectedIndex(0);
+                */
+            }
+        }
+    }//GEN-LAST:event_jbtn_quitarActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator2;
@@ -460,6 +688,8 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
     private javax.swing.JButton jbtn_RegistrarCampo;
     private javax.swing.JButton jbtn_agregarLote;
     private javax.swing.JButton jbtn_cancelarCampo;
+    private javax.swing.JButton jbtn_editar;
+    private javax.swing.JButton jbtn_quitar;
     private javax.swing.JComboBox<String> jcb_tipoSueloLote;
     private javax.swing.JLabel jlbl_ha;
     private javax.swing.JLabel jlbl_lotes;
@@ -478,4 +708,5 @@ public class ViewRegistrarCampo extends javax.swing.JPanel {
     private javax.swing.JTextField jtf_superficieLote;
     // End of variables declaration//GEN-END:variables
 
+    
 }

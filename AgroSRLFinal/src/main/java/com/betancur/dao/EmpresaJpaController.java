@@ -6,17 +6,15 @@
 package com.betancur.dao;
 
 import com.betancur.dao.exceptions.NonexistentEntityException;
+import com.betancur.model.Empresa;
 import java.io.Serializable;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import com.betancur.model.Campo;
-import com.betancur.model.Empresa;
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 
 /**
  *
@@ -34,29 +32,11 @@ public class EmpresaJpaController implements Serializable {
     }
 
     public void create(Empresa empresa) {
-        if (empresa.getListaCampos() == null) {
-            empresa.setListaCampos(new ArrayList<Campo>());
-        }
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            List<Campo> attachedListaCampos = new ArrayList<Campo>();
-            for (Campo listaCamposCampoToAttach : empresa.getListaCampos()) {
-                listaCamposCampoToAttach = em.getReference(listaCamposCampoToAttach.getClass(), listaCamposCampoToAttach.getId());
-                attachedListaCampos.add(listaCamposCampoToAttach);
-            }
-            empresa.setListaCampos(attachedListaCampos);
             em.persist(empresa);
-            for (Campo listaCamposCampo : empresa.getListaCampos()) {
-                Empresa oldUnaEmpresaOfListaCamposCampo = listaCamposCampo.getUnaEmpresa();
-                listaCamposCampo.setUnaEmpresa(empresa);
-                listaCamposCampo = em.merge(listaCamposCampo);
-                if (oldUnaEmpresaOfListaCamposCampo != null) {
-                    oldUnaEmpresaOfListaCamposCampo.getListaCampos().remove(listaCamposCampo);
-                    oldUnaEmpresaOfListaCamposCampo = em.merge(oldUnaEmpresaOfListaCamposCampo);
-                }
-            }
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -70,34 +50,7 @@ public class EmpresaJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Empresa persistentEmpresa = em.find(Empresa.class, empresa.getId());
-            List<Campo> listaCamposOld = persistentEmpresa.getListaCampos();
-            List<Campo> listaCamposNew = empresa.getListaCampos();
-            List<Campo> attachedListaCamposNew = new ArrayList<Campo>();
-            for (Campo listaCamposNewCampoToAttach : listaCamposNew) {
-                listaCamposNewCampoToAttach = em.getReference(listaCamposNewCampoToAttach.getClass(), listaCamposNewCampoToAttach.getId());
-                attachedListaCamposNew.add(listaCamposNewCampoToAttach);
-            }
-            listaCamposNew = attachedListaCamposNew;
-            empresa.setListaCampos(listaCamposNew);
             empresa = em.merge(empresa);
-            for (Campo listaCamposOldCampo : listaCamposOld) {
-                if (!listaCamposNew.contains(listaCamposOldCampo)) {
-                    listaCamposOldCampo.setUnaEmpresa(null);
-                    listaCamposOldCampo = em.merge(listaCamposOldCampo);
-                }
-            }
-            for (Campo listaCamposNewCampo : listaCamposNew) {
-                if (!listaCamposOld.contains(listaCamposNewCampo)) {
-                    Empresa oldUnaEmpresaOfListaCamposNewCampo = listaCamposNewCampo.getUnaEmpresa();
-                    listaCamposNewCampo.setUnaEmpresa(empresa);
-                    listaCamposNewCampo = em.merge(listaCamposNewCampo);
-                    if (oldUnaEmpresaOfListaCamposNewCampo != null && !oldUnaEmpresaOfListaCamposNewCampo.equals(empresa)) {
-                        oldUnaEmpresaOfListaCamposNewCampo.getListaCampos().remove(listaCamposNewCampo);
-                        oldUnaEmpresaOfListaCamposNewCampo = em.merge(oldUnaEmpresaOfListaCamposNewCampo);
-                    }
-                }
-            }
             em.getTransaction().commit();
         } catch (Exception ex) {
             String msg = ex.getLocalizedMessage();
@@ -126,11 +79,6 @@ public class EmpresaJpaController implements Serializable {
                 empresa.getId();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The empresa with id " + id + " no longer exists.", enfe);
-            }
-            List<Campo> listaCampos = empresa.getListaCampos();
-            for (Campo listaCamposCampo : listaCampos) {
-                listaCamposCampo.setUnaEmpresa(null);
-                listaCamposCampo = em.merge(listaCamposCampo);
             }
             em.remove(empresa);
             em.getTransaction().commit();

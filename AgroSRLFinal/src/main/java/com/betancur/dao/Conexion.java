@@ -13,7 +13,7 @@ import javax.persistence.Persistence;
  * @author Ariel
  */
 public class Conexion {
-    private static final String PERSISTENCE_UNIT_NAME ="com.betancur_AgroSRLFinal_jar_1.0PU";
+    private static final String PERSISTENCE_UNIT_NAME ="com.betancur_agrosrl3_jar_1.0PU";
     private static EntityManagerFactory factory;
     
     public static EntityManagerFactory getEntityManagerFactory(){

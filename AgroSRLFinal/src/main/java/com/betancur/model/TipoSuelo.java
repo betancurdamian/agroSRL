@@ -18,21 +18,20 @@ import javax.persistence.Table;
  * @author Ariel
  */
 @Entity
-@Table(name = "TIPO_SUELO")
+@Table(name = "tipo_suelo")
 public class TipoSuelo implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
     @Column(name = "numero", length = 10)
     private int numero;
     
     @Column(name = "descripcion")
     private String descripcion;
-    
-    
+
     public Long getId() {
         return id;
     }
@@ -63,7 +62,7 @@ public class TipoSuelo implements Serializable {
 
     @Override
     public String toString() {
-        return String.valueOf(numero);
+        return   numero + "";
     }
 
     public int getNumero() {
@@ -81,6 +80,5 @@ public class TipoSuelo implements Serializable {
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
     }
-    
     
 }

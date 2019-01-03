@@ -6,16 +6,15 @@
 package com.betancur.dao;
 
 import com.betancur.dao.exceptions.NonexistentEntityException;
+import com.betancur.model.Lote;
 import java.io.Serializable;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import com.betancur.model.Campo;
-import com.betancur.model.Lote;
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 
 /**
  *
@@ -37,16 +36,7 @@ public class LoteJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Campo unCampo = lote.getUnCampo();
-            if (unCampo != null) {
-                unCampo = em.getReference(unCampo.getClass(), unCampo.getId());
-                lote.setUnCampo(unCampo);
-            }
             em.persist(lote);
-            if (unCampo != null) {
-                unCampo.getListaLotes().add(lote);
-                unCampo = em.merge(unCampo);
-            }
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -60,22 +50,7 @@ public class LoteJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Lote persistentLote = em.find(Lote.class, lote.getId());
-            Campo unCampoOld = persistentLote.getUnCampo();
-            Campo unCampoNew = lote.getUnCampo();
-            if (unCampoNew != null) {
-                unCampoNew = em.getReference(unCampoNew.getClass(), unCampoNew.getId());
-                lote.setUnCampo(unCampoNew);
-            }
             lote = em.merge(lote);
-            if (unCampoOld != null && !unCampoOld.equals(unCampoNew)) {
-                unCampoOld.getListaLotes().remove(lote);
-                unCampoOld = em.merge(unCampoOld);
-            }
-            if (unCampoNew != null && !unCampoNew.equals(unCampoOld)) {
-                unCampoNew.getListaLotes().add(lote);
-                unCampoNew = em.merge(unCampoNew);
-            }
             em.getTransaction().commit();
         } catch (Exception ex) {
             String msg = ex.getLocalizedMessage();
@@ -104,11 +79,6 @@ public class LoteJpaController implements Serializable {
                 lote.getId();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The lote with id " + id + " no longer exists.", enfe);
-            }
-            Campo unCampo = lote.getUnCampo();
-            if (unCampo != null) {
-                unCampo.getListaLotes().remove(lote);
-                unCampo = em.merge(unCampo);
             }
             em.remove(lote);
             em.getTransaction().commit();

@@ -11,6 +11,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -22,14 +23,14 @@ import javax.persistence.Table;
  * @author Ariel
  */
 @Entity
-@Table(name = "EMPRESA")
+@Table(name = "empresa")
 public class Empresa implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(name = "razonSocial")
     private String razonSocial;
 
@@ -37,16 +38,16 @@ public class Empresa implements Serializable {
     private String cuit;
     
     @Column(name = "unaDireccion")
-    private String unaDireccion;
+    private String direccion;
     
-    //Campos que posee la empresa
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "unaEmpresa")
-    private List<Campo> listaCampos;
+    @OneToMany(mappedBy = "empresa", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
+            fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Campo> listaDeCampos;
 
     public Empresa() {
-        this.listaCampos = new ArrayList(); 
+        //Se debe de inicializar la lista, para evitar nullPinterException
+        listaDeCampos = new ArrayList<>();
     }
-
     
     
     public Long getId() {
@@ -98,22 +99,21 @@ public class Empresa implements Serializable {
         this.cuit = cuit;
     }
 
-    public String getUnaDireccion() {
-        return unaDireccion;
+    public String getDireccion() {
+        return direccion;
     }
 
-    public void setUnaDireccion(String unaDireccion) {
-        this.unaDireccion = unaDireccion;
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
     }
 
-    public List<Campo> getListaCampos() {
-        return listaCampos;
+    public List<Campo> getListaDeCampos() {
+        return listaDeCampos;
     }
 
-    public void setListaCampos(List<Campo> attachedListaCampos) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void setListaDeCampos(List<Campo> listaDeCampos) {
+        this.listaDeCampos = listaDeCampos;
     }
 
-    
-    
+   
 }

@@ -11,6 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -19,27 +20,30 @@ import javax.persistence.Table;
  * @author Ariel
  */
 @Entity
-@Table(name = "LOTE")
+@Table(name = "lote")
 public class Lote implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "numeroLote", length = 10)
+    
+     @Column(name = "numeroLote", length = 10)
     private int numeroLote;
     
     @Column(name = "superficieLote", length = 10)
     private float superficieLote;
     
     @ManyToOne
-    private TipoSuelo unTipoSuelo;
+    @JoinColumn(name="id_tipoSuelo", nullable = false)
+    private TipoSuelo tipoSuelo;
     
     @ManyToOne
-    private Campo unCampo;
+    @JoinColumn(name="id_campo", nullable = false)
+    private Campo campo;
     
     
+
     public Long getId() {
         return id;
     }
@@ -89,20 +93,20 @@ public class Lote implements Serializable {
         this.superficieLote = superficieLote;
     }
 
-    public TipoSuelo getUnTipoSuelo() {
-        return unTipoSuelo;
+    public TipoSuelo getTipoSuelo() {
+        return tipoSuelo;
     }
 
-    public void setUnTipoSuelo(TipoSuelo unTipoSuelo) {
-        this.unTipoSuelo = unTipoSuelo;
+    public void setTipoSuelo(TipoSuelo tipoSuelo) {
+        this.tipoSuelo = tipoSuelo;
     }
 
-    public Campo getUnCampo() {
-        return unCampo;
+    public Campo getCampo() {
+        return campo;
     }
 
-    public void setUnCampo(Campo unCampo) {
-        this.unCampo = unCampo;
+    public void setCampo(Campo campo) {
+        this.campo = campo;
     }
     
     

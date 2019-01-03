@@ -8,7 +8,6 @@ package com.betancur.controller;
 
 import com.betancur.dao.CampoJpaController;
 import com.betancur.dao.Conexion;
-import com.betancur.dao.EmpresaJpaController;
 import com.betancur.dao.EstadoCampoJpaController;
 import com.betancur.dao.LoteJpaController;
 import com.betancur.dao.TipoSueloJpaController;
@@ -17,7 +16,6 @@ import com.betancur.model.Empresa;
 import com.betancur.model.EstadoCampo;
 import com.betancur.model.Lote;
 import com.betancur.model.TipoSuelo;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,41 +27,51 @@ public class ControllerRegistrarCampo {
     //Model
     private Empresa empresaModel;
     private CampoJpaController campoDAO = new CampoJpaController(Conexion.getEntityManagerFactory());   
-    private LoteJpaController loteDAO = new LoteJpaController(Conexion.getEntityManagerFactory()); 
-    private TipoSueloJpaController tipoSueloDAO = new TipoSueloJpaController(Conexion.getEntityManagerFactory());
-    private EstadoCampoJpaController estadoCampoDAO = new EstadoCampoJpaController(Conexion.getEntityManagerFactory());
+    private final LoteJpaController loteDAO = new LoteJpaController(Conexion.getEntityManagerFactory()); 
+    private final TipoSueloJpaController tipoSueloDAO = new TipoSueloJpaController(Conexion.getEntityManagerFactory());
+    private final EstadoCampoJpaController estadoCampoDAO = new EstadoCampoJpaController(Conexion.getEntityManagerFactory());
     
     public ControllerRegistrarCampo() {
-        
+        //Setea el controlador con una empresa. 
+        //La empresa es un SINGLETON
         setEmpresaModel(ControllerEmpresa.getInstance().getEmpresaUnica());
     }
-        
+    
+    /**
+     * verificarNombreDeCampo
+     * verifica que el nombre del campo que se ingresa, no se encuentre
+     * registrado en la empresa
+     * 
+     * @param nombreCampo
+     * @return 
+     */    
     public boolean verificarNombreDeCampo(String nombreCampo){
-        boolean campoEncontrado = false;
+        boolean nombreDeCampoValido = true;
         Campo campoAux = new Campo();        
         campoAux.setNombreCampo(nombreCampo);
-        if (empresaModel!=null) {
-             for (Campo campoRecorrido : campoDAO.findCampoEntities()) {
+        if (empresaModel!=null) {            
+             for (Campo campoRecorrido : campoDAO.findCampoEntities()) {                
                 if (campoRecorrido.getNombreCampo().equals(campoAux.getNombreCampo())) {
-                    campoEncontrado = false;
-                }else{
-                    campoEncontrado = true;
+                    nombreDeCampoValido = false;
                 }
             }   
+        }else{
+            System.out.println("No hay empresa ");
         }   
-        return campoEncontrado;
+        return nombreDeCampoValido;
     }
     
     /**
      * verificarNumeroLote
      * Si en numero esta en la lista de lotes del campo, devuelve verdadero
      * @param unCampo
+     * @param numeroLote
      * @return 
      */
     public boolean verificarNumeroLote(Campo unCampo, int numeroLote){
         boolean campoEncontrado = false;
         if(unCampo!=null){
-            for (Lote recorridoLote : unCampo.getListaLotes()) {
+            for (Lote recorridoLote : unCampo.getListaDeLotes()) {
                 if (recorridoLote.getNumeroLote()== numeroLote) {
                     campoEncontrado = true;
                 }
@@ -87,7 +95,7 @@ public class ControllerRegistrarCampo {
         float superficieVerificada = 0;
         if(unCampo!=null){
             superficieRestante = unCampo.getSuperficieCampo();
-            for (Lote recorridoLote : unCampo.getListaLotes()) {
+            for (Lote recorridoLote : unCampo.getListaDeLotes()) {
                 superficieAuxiliar = superficieAuxiliar + recorridoLote.getSuperficieLote();
             }
             superficieRestante = superficieRestante - superficieAuxiliar;
@@ -109,35 +117,39 @@ public class ControllerRegistrarCampo {
         return tiposDeSuelo;
     }
     
-    public void finalizarRegistroNuevoCampo(Campo nuevoCampo){
-        
-        EstadoCampo unEstadoCampo = estadoCampoDAO.findEstadoCampo(1L);
-        nuevoCampo.setUnEstadoCampo(unEstadoCampo);
-        nuevoCampo.setUnaEmpresa(empresaModel);
-        System.out.println("campo");
-        System.out.println("id: "+nuevoCampo.getId());
-        System.out.println("nombre: "+nuevoCampo.getNombreCampo());
-        System.out.println("nombre: "+nuevoCampo.getSuperficieCampo());
-        System.out.println("Empresa:"+ nuevoCampo.getUnaEmpresa().getRazonSocial());
-        System.out.println("Lotes");
-        
-        for (Lote listaLote : nuevoCampo.getListaLotes()) {
-            System.out.println("numero lote: "+listaLote.getNumeroLote());
-            System.out.println("superficie lote: "+listaLote.getSuperficieLote());
-            System.out.println("campo lote: "+listaLote.getUnCampo().getNombreCampo());
-            System.out.println("tipo suelo lote: "+listaLote.getUnTipoSuelo().getDescripcion());
-        }
-        if (nuevoCampo!=null) {
-            if (nuevoCampo.getListaLotes().isEmpty()) {
-                
-            }else{
-                
-                campoDAO.create(nuevoCampo);
-                
+    public boolean agregarTipoSueloAlLote(TipoSuelo ts, Lote l){
+        boolean agregado = false;
+        TipoSuelo auxTipoSuelo = null;
+        for (TipoSuelo recorridoTipoSueloEntity : tipoSueloDAO.findTipoSueloEntities()) {
+            if (recorridoTipoSueloEntity.getNumero()==ts.getNumero()) {
+                auxTipoSuelo = recorridoTipoSueloEntity;
             }
         }
+        if (auxTipoSuelo!=null) {
+            l.setTipoSuelo(auxTipoSuelo);
+            agregado = true;
+        }
+        return agregado;
+    }
+    
+    
+    public void finalizarRegistroNuevoCampo(Campo nuevoCampo){
+        nuevoCampo.setEmpresa(empresaModel);
         
-        System.out.println("campo registrado");
+        //recupera el estabo bien de la base de datos        
+        EstadoCampo unEstadoCampo = estadoCampoDAO.findEstadoCampo(1L);        
+        
+        nuevoCampo.setEstadoCampo(unEstadoCampo);
+        
+        if (nuevoCampo!=null) {
+            if (nuevoCampo.getListaDeLotes().isEmpty()) {
+                System.out.println("campo sin lotes");
+            }else{
+                System.out.println("campo con lotes"); 
+                campoDAO = new CampoJpaController(Conexion.getEntityManagerFactory());
+                campoDAO.create(nuevoCampo);
+            }
+        }
     }
     
     
