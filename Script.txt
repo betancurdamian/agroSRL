@@ -107,3 +107,22 @@ CREATE TABLE `agrosrl`.`Campo_Lote`(
 
         FOREIGN KEY(`id_lote_fk`) REFERENCES `Lote`(`id_lote`)
 );
+
+INSERT INTO public.empresa(
+	id, cuit, razonsocial, unadireccion)
+	VALUES (1, '20000000', 'La empresita', 'calle falsa 123');
+
+INSERT INTO public.tipo_suelo(
+	id, descripcion, numero)
+	VALUES  (1, 'Tipo 1', '1'),
+		(2, 'Tipo 2', '2'),
+		(3, 'Tipo 3', '3'),
+		(4, 'Tipo 4', '4'),
+		(5, 'Tipo 5', '5');
+
+INSERT INTO public.estado_campo(
+	id, descripcion)
+	VALUES (1, 'Creado'),
+	       (2, 'Parcialmente Trabajado'),
+	       (3, 'Completamente Trabajado'),
+	       (4, 'En desuso');
